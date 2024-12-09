@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UsuarioController {
 
 	
-	@GetMapping("/test")
+	@GetMapping("/test/{nombre}")
 	public ResponseEntity<?> test(@PathVariable("nombre")String nombre){
 		return ResponseEntity.status(HttpStatus.OK).body(nombre);
 				
