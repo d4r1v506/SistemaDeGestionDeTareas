@@ -2,36 +2,17 @@ package ec.edu.ups.gestor_tareas.models;
 
 import java.time.LocalDate;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+public class TareaDTO {
 
-@Entity
-public class Tarea {
-
-	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String codigoTarea;
+	private String codigoTarea;
     private String titulo;
     private String descripcion;
     private String criteriosAceptacion;
     private LocalDate fechaInicio;
     private LocalDate fechaFinalizacion;
     private int tiempoDesarrollo;
-    @ManyToOne
-    @JoinColumn(name = "estado_tarea", nullable = false)
-    private Estado estado;
+    private String estado;
     
-	public Long getId() {
-		return id;
-	}
-	public void setId(Long id) {
-		this.id = id;
-	}
 	public String getCodigoTarea() {
 		return codigoTarea;
 	}
@@ -74,10 +55,10 @@ public class Tarea {
 	public void setTiempoDesarrollo(int tiempoDesarrollo) {
 		this.tiempoDesarrollo = tiempoDesarrollo;
 	}
-	public Estado getEstado() {
+	public String getEstado() {
 		return estado;
 	}
-	public void setEstado(Estado estado) {
+	public void setEstado(String estado) {
 		this.estado = estado;
 	}
     
