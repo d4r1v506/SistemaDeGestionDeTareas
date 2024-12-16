@@ -19,12 +19,10 @@ public class TareaService {
 	@Autowired
 	private EstadoRepository estadoRepository;
 	
-	private final UsuarioService usuarioService;
 	
 	 @Autowired
-	    public TareaService(TareaRepository tareaRepository, UsuarioService usuarioService) {
-	        this.tareaRepository = tareaRepository;
-	        this.usuarioService = usuarioService;
+	    public TareaService(TareaRepository tareaRepository) {
+	        this.tareaRepository = tareaRepository;	
 	    }
 
 	public Tarea obtenerTareaPorId(Long id) {
@@ -67,19 +65,15 @@ public class TareaService {
 	}
 
 	public void asignarTareaAUsuario(Long idTarea, String idUsuario) {
-		
-		 // Verificar si el usuario existe antes de asignar la tarea
-      /*  if (!usuarioService.verificarUsuario(idUsuario)) {
-            throw new RuntimeException("El usuario no existe.");
-        }*/
-		 // Buscar la tarea por su ID
         Tarea tarea = tareaRepository.findById(idTarea)
                 .orElseThrow(() -> new RuntimeException("La tarea no existe."));
+        
+        if("DONE".equalsIgnoreCase(tarea.getEstado().getNombre())) {
+        	throw new RuntimeException("la tarea no puede ser asignada por ya ha finalizado");
+        }
 
-        // Asignar el ID del usuario
         tarea.setIdUsuario(idUsuario);
 
-        // Guardar los cambios
         tareaRepository.save(tarea);
 		
 	}

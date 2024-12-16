@@ -13,4 +13,5 @@ public interface UsuarioClient {
 	
 	@GetMapping("/usuarios/{idUsuario}")
 	RespuestaGenericaServicio usuarioExiste(@PathVariable String idUsuario, @RequestHeader("Authorization") String authorizationHeader);
+
 }

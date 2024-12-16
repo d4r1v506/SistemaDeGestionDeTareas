@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import ec.edu.ups.gestor_tareas.auth.SecurityProperties;
 import ec.edu.ups.gestor_tareas.clients.AuthClient;
 import ec.edu.ups.gestor_tareas.clients.UsuarioClient;
 import ec.edu.ups.gestor_tareas.models.AuthResponse;
@@ -36,6 +37,9 @@ public class TareaController {
 
 	@Autowired
 	private TareaService tareaService;
+	
+	@Autowired
+	private SecurityProperties securityProperties;
 	
 	 private final AuthClient authClient;
 	 
@@ -104,6 +108,7 @@ public class TareaController {
 				RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null,
 						new String[] { "Tarea no encontrada con ID: " + id });
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuesta);
+								
 			}
 			RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("SUCCESS", tareaActualizada,
 					new String[] { "Tarea actualizada exitosamente" });
@@ -136,21 +141,34 @@ public class TareaController {
 	
 	@PutMapping("{idTarea}/asignaar")
 	public ResponseEntity<?> asignarTarea(@PathVariable Long idTarea, @RequestBody Map<String, String> body){
+		try {
+			String username = securityProperties.getUsername();
+            String password = securityProperties.getPassword();
+			
 		String idUsuario = body.get("idUsuario");
 		
 		// Obtener el token dinámicamente desde el servicio de autenticación
-		ResponseEntity<AuthResponse> authResponse = authClient.login(new LoginRequest("admin", "admin123"));
-		String token = authResponse.getBody().getToken(); // Asumimos que el token es parte de la respuesta
+		ResponseEntity<AuthResponse> authResponse = authClient.login(new LoginRequest(username, password));
+		String token = authResponse.getBody().getToken();
 
-	 // Verificar si el usuario existe pasando el token
-		RespuestaGenericaServicio usuarioExiste = usuarioClient.usuarioExiste(idUsuario, "Bearer " + token); // Usamos el token aquí
-	    if (usuarioExiste == null) {
-	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El usuario no existe.");
+		RespuestaGenericaServicio usuarioExiste = usuarioClient.usuarioExiste(idUsuario, "Bearer " + token);
+		
+	    if (usuarioExiste == null) {	        
+	        RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null, 
+					new String[] {"Usuario con identificacion: "+idUsuario + " no encontrado"});	
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuesta);
 	    }
 
         tareaService.asignarTareaAUsuario(idTarea, idUsuario);
-
-        return ResponseEntity.ok("Tarea asignada correctamente.");    
+      
+		RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("SUCCESS", null,
+                new String[] { "Tarea asignada correctamente al usuario: "+idUsuario });
+        return ResponseEntity.ok(respuesta);
+		}catch (Exception e) {
+			RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null,
+					new String[] {e.getMessage() });
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);			
+		}
 	}
 	
 	
