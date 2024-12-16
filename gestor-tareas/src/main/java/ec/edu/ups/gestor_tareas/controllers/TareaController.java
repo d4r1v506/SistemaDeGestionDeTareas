@@ -1,5 +1,7 @@
 package ec.edu.ups.gestor_tareas.controllers;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +16,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import ec.edu.ups.gestor_tareas.clients.AuthClient;
+import ec.edu.ups.gestor_tareas.clients.UsuarioClient;
+import ec.edu.ups.gestor_tareas.models.AuthResponse;
 import ec.edu.ups.gestor_tareas.models.Estado;
+import ec.edu.ups.gestor_tareas.models.LoginRequest;
 import ec.edu.ups.gestor_tareas.models.Tarea;
 import ec.edu.ups.gestor_tareas.models.TareaDTO;
 import ec.edu.ups.gestor_tareas.services.TareaService;
@@ -24,9 +30,20 @@ import ec.edu.ups.gestor_tareas.util.RespuestaGenericaServicio;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/api/tareas")
 public class TareaController {
+	
+	@Autowired
+	private UsuarioClient usuarioClient;
 
 	@Autowired
 	private TareaService tareaService;
+	
+	 private final AuthClient authClient;
+	 
+	 @Autowired
+	    public TareaController(AuthClient authClient, UsuarioClient usuarioClient) {
+	        this.authClient = authClient;
+	        this.usuarioClient = usuarioClient;
+	    }
 
 	@GetMapping("/test/{nombre}")
 	public ResponseEntity<?> test(@PathVariable("nombre") String nombre) {
@@ -114,7 +131,27 @@ public class TareaController {
 			RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null,
 					new String[] { "Error interno del servidor: " + e.getMessage() });
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
-		}
-		
+		}		
 	}
+	
+	@PutMapping("{idTarea}/asignaar")
+	public ResponseEntity<?> asignarTarea(@PathVariable Long idTarea, @RequestBody Map<String, String> body){
+		String idUsuario = body.get("idUsuario");
+		
+		// Obtener el token dinámicamente desde el servicio de autenticación
+		ResponseEntity<AuthResponse> authResponse = authClient.login(new LoginRequest("admin", "admin123"));
+		String token = authResponse.getBody().getToken(); // Asumimos que el token es parte de la respuesta
+
+	 // Verificar si el usuario existe pasando el token
+		RespuestaGenericaServicio usuarioExiste = usuarioClient.usuarioExiste(idUsuario, "Bearer " + token); // Usamos el token aquí
+	    if (usuarioExiste == null) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El usuario no existe.");
+	    }
+
+        tareaService.asignarTareaAUsuario(idTarea, idUsuario);
+
+        return ResponseEntity.ok("Tarea asignada correctamente.");    
+	}
+	
+	
 }

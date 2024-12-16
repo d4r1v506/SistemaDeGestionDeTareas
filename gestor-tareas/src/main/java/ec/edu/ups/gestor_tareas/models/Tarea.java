@@ -26,6 +26,8 @@ public class Tarea {
     @JoinColumn(name = "estado_tarea", nullable = false)
     private Estado estado;
     
+    private String idUsuario;    
+    
 	public Long getId() {
 		return id;
 	}
@@ -80,5 +82,11 @@ public class Tarea {
 	public void setEstado(Estado estado) {
 		this.estado = estado;
 	}
-    
+	public String getIdUsuario() {
+		return idUsuario;
+	}
+	public void setIdUsuario(String idUsuario) {
+		this.idUsuario = idUsuario;
+	}
+	
 }
