@@ -1,5 +1,6 @@
 package ec.edu.ups.gestor_tareas.services;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +77,10 @@ public class TareaService {
 
         tareaRepository.save(tarea);
 		
+	}
+
+	public List<Tarea> obtenerTareasPorUsuario(String idUsuario) {
+		return tareaRepository.findByIdUsuario(idUsuario);		
 	}
 
 }

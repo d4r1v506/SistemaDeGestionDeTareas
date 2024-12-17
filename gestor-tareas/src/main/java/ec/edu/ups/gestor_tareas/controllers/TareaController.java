@@ -1,5 +1,6 @@
 package ec.edu.ups.gestor_tareas.controllers;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,23 +32,23 @@ import ec.edu.ups.gestor_tareas.util.RespuestaGenericaServicio;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/api/tareas")
 public class TareaController {
-	
+
 	@Autowired
 	private UsuarioClient usuarioClient;
 
 	@Autowired
 	private TareaService tareaService;
-	
+
 	@Autowired
 	private SecurityProperties securityProperties;
-	
-	 private final AuthClient authClient;
-	 
-	 @Autowired
-	    public TareaController(AuthClient authClient, UsuarioClient usuarioClient) {
-	        this.authClient = authClient;
-	        this.usuarioClient = usuarioClient;
-	    }
+
+	private final AuthClient authClient;
+
+	@Autowired
+	public TareaController(AuthClient authClient, UsuarioClient usuarioClient) {
+		this.authClient = authClient;
+		this.usuarioClient = usuarioClient;
+	}
 
 	@GetMapping("/test/{nombre}")
 	public ResponseEntity<?> test(@PathVariable("nombre") String nombre) {
@@ -108,7 +109,7 @@ public class TareaController {
 				RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null,
 						new String[] { "Tarea no encontrada con ID: " + id });
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuesta);
-								
+
 			}
 			RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("SUCCESS", tareaActualizada,
 					new String[] { "Tarea actualizada exitosamente" });
@@ -123,53 +124,71 @@ public class TareaController {
 	@DeleteMapping("/{id}")
 	public ResponseEntity<?> borrarTarea(@PathVariable Long id) {
 		try {
-		boolean isBorrada = tareaService.borrarTarea(id);
-		if (!isBorrada) {
-			RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null,
-					new String[] { "Tarea no encontrada con ID: " + id });
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuesta);
-		}
-		RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("SUCCESS", null,
-				new String[] { "Tarea con ID: "+id+" eliminada exitosamente" });
-		return ResponseEntity.ok(respuesta);
-		}catch (Exception e) {
+			boolean isBorrada = tareaService.borrarTarea(id);
+			if (!isBorrada) {
+				RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null,
+						new String[] { "Tarea no encontrada con ID: " + id });
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuesta);
+			}
+			RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("SUCCESS", null,
+					new String[] { "Tarea con ID: " + id + " eliminada exitosamente" });
+			return ResponseEntity.ok(respuesta);
+		} catch (Exception e) {
 			RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null,
 					new String[] { "Error interno del servidor: " + e.getMessage() });
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
-		}		
-	}
-	
-	@PutMapping("{idTarea}/asignaar")
-	public ResponseEntity<?> asignarTarea(@PathVariable Long idTarea, @RequestBody Map<String, String> body){
-		try {
-			String username = securityProperties.getUsername();
-            String password = securityProperties.getPassword();
-			
-		String idUsuario = body.get("idUsuario");
-		
-		// Obtener el token dinámicamente desde el servicio de autenticación
-		ResponseEntity<AuthResponse> authResponse = authClient.login(new LoginRequest(username, password));
-		String token = authResponse.getBody().getToken();
-
-		RespuestaGenericaServicio usuarioExiste = usuarioClient.usuarioExiste(idUsuario, "Bearer " + token);
-		
-	    if (usuarioExiste == null) {	        
-	        RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null, 
-					new String[] {"Usuario con identificacion: "+idUsuario + " no encontrado"});	
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuesta);
-	    }
-
-        tareaService.asignarTareaAUsuario(idTarea, idUsuario);
-      
-		RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("SUCCESS", null,
-                new String[] { "Tarea asignada correctamente al usuario: "+idUsuario });
-        return ResponseEntity.ok(respuesta);
-		}catch (Exception e) {
-			RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null,
-					new String[] {e.getMessage() });
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);			
 		}
 	}
-	
-	
+
+	@PutMapping("{idTarea}/asignaar")
+	public ResponseEntity<?> asignarTarea(@PathVariable Long idTarea, @RequestBody Map<String, String> body) {
+		try {
+			String username = securityProperties.getUsername();
+			String password = securityProperties.getPassword();
+
+			String idUsuario = body.get("idUsuario");
+
+			// Obtener el token dinámicamente desde el servicio de autenticación
+			ResponseEntity<AuthResponse> authResponse = authClient.login(new LoginRequest(username, password));
+			String token = authResponse.getBody().getToken();
+
+			RespuestaGenericaServicio usuarioExiste = usuarioClient.usuarioExiste(idUsuario, "Bearer " + token);
+
+			if (usuarioExiste == null) {
+				RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null,
+						new String[] { "Usuario con identificacion: " + idUsuario + " no encontrado" });
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuesta);
+			}
+
+			tareaService.asignarTareaAUsuario(idTarea, idUsuario);
+
+			RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("SUCCESS", null,
+					new String[] { "Tarea asignada correctamente al usuario: " + idUsuario });
+			return ResponseEntity.ok(respuesta);
+		} catch (Exception e) {
+			RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null,
+					new String[] { e.getMessage() });
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
+		}
+	}
+
+	@GetMapping("/usuario/{idUsuario}")
+	public ResponseEntity<?> obtenerTareasPorUsuario(@PathVariable String idUsuario){
+		try {
+			List<Tarea> tareas = tareaService.obtenerTareasPorUsuario(idUsuario);
+				if(tareas.isEmpty()) {
+					  RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null, 
+								new String[] {"Usuario con identificacion: "+idUsuario + " no tiene tareas asignadas"});	
+						return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuesta);
+				}
+				
+				RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("SUCCESS", tareas,
+						new String[] { "Tarea obtenidas del usuario: " + idUsuario });
+				return ResponseEntity.ok(respuesta);
+		}catch (Exception e) {
+			RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null,
+					new String[] { e.getMessage() });
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
+		}
+	}
 }
