@@ -21,10 +21,10 @@ public class TareaService {
 	private EstadoRepository estadoRepository;
 	
 	
-	 @Autowired
+	 /*@Autowired
 	    public TareaService(TareaRepository tareaRepository) {
 	        this.tareaRepository = tareaRepository;	
-	    }
+	    }*/
 
 	public Tarea obtenerTareaPorId(Long id) {
 		return tareaRepository.findById(id).orElse(null);

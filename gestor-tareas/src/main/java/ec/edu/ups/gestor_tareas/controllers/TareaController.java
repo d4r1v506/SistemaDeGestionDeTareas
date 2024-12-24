@@ -148,7 +148,6 @@ public class TareaController {
 
 			String idUsuario = body.get("idUsuario");
 
-			// Obtener el token dinámicamente desde el servicio de autenticación
 			ResponseEntity<AuthResponse> authResponse = authClient.login(new LoginRequest(username, password));
 			String token = authResponse.getBody().getToken();
 
