@@ -19,12 +19,6 @@ public class TareaService {
 
 	@Autowired
 	private EstadoRepository estadoRepository;
-	
-	
-	 /*@Autowired
-	    public TareaService(TareaRepository tareaRepository) {
-	        this.tareaRepository = tareaRepository;	
-	    }*/
 
 	public Tarea obtenerTareaPorId(Long id) {
 		return tareaRepository.findById(id).orElse(null);
@@ -81,6 +75,11 @@ public class TareaService {
 
 	public List<Tarea> obtenerTareasPorUsuario(String idUsuario) {
 		return tareaRepository.findByIdUsuario(idUsuario);		
+	}
+
+	public void crearTareas(List<Tarea> tareas) {
+		tareaRepository.saveAll(tareas);
+		
 	}
 
 }

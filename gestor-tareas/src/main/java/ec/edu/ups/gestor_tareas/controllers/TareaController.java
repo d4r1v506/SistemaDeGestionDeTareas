@@ -1,5 +1,6 @@
 package ec.edu.ups.gestor_tareas.controllers;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +16,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ec.edu.ups.gestor_tareas.auth.SecurityProperties;
 import ec.edu.ups.gestor_tareas.clients.AuthClient;
@@ -41,6 +46,9 @@ public class TareaController {
 
 	@Autowired
 	private SecurityProperties securityProperties;
+
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	private final AuthClient authClient;
 
@@ -172,22 +180,36 @@ public class TareaController {
 	}
 
 	@GetMapping("/usuario/{idUsuario}")
-	public ResponseEntity<?> obtenerTareasPorUsuario(@PathVariable String idUsuario){
+	public ResponseEntity<?> obtenerTareasPorUsuario(@PathVariable String idUsuario) {
 		try {
 			List<Tarea> tareas = tareaService.obtenerTareasPorUsuario(idUsuario);
-				if(tareas.isEmpty()) {
-					  RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null, 
-								new String[] {"Usuario con identificacion: "+idUsuario + " no tiene tareas asignadas"});	
-						return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuesta);
-				}
-				
-				RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("SUCCESS", tareas,
-						new String[] { "Tarea obtenidas del usuario: " + idUsuario });
-				return ResponseEntity.ok(respuesta);
-		}catch (Exception e) {
+			if (tareas.isEmpty()) {
+				RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null,
+						new String[] { "Usuario con identificacion: " + idUsuario + " no tiene tareas asignadas" });
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuesta);
+			}
+
+			RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("SUCCESS", tareas,
+					new String[] { "Tarea obtenidas del usuario: " + idUsuario });
+			return ResponseEntity.ok(respuesta);
+		} catch (Exception e) {
 			RespuestaGenericaServicio respuesta = new RespuestaGenericaServicio("ERROR", null,
 					new String[] { e.getMessage() });
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
+		}
+	}
+
+	@PostMapping("/upload")
+	public String subirArchivoTareas(@RequestParam("file") MultipartFile file) {
+		try {
+			List<Tarea> tareas = objectMapper.readValue(file.getInputStream(),
+					objectMapper.getTypeFactory().constructCollectionType(List.class, Tarea.class));
+
+			tareaService.crearTareas(tareas);
+			return "Archivo procesado correctamente, tareas creadas";
+		} catch (IOException e) {
+			e.printStackTrace();
+			return "Error al procesar archivo JSON";
 		}
 	}
 }
