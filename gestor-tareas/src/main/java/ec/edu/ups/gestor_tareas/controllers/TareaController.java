@@ -148,7 +148,7 @@ public class TareaController {
 		}
 	}
 
-	@PutMapping("{idTarea}/asignaar")
+	@PutMapping("/asignar/{idTarea}")
 	public ResponseEntity<?> asignarTarea(@PathVariable Long idTarea, @RequestBody Map<String, String> body) {
 		try {
 			String username = securityProperties.getUsername();

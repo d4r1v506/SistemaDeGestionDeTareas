@@ -10,6 +10,7 @@ import ec.edu.ups.gestor_tareas.models.Estado;
 import ec.edu.ups.gestor_tareas.models.Tarea;
 import ec.edu.ups.gestor_tareas.repository.EstadoRepository;
 import ec.edu.ups.gestor_tareas.repository.TareaRepository;
+import ec.edu.ups.gestor_tareas.util.NotificadorTarea;
 
 @Service
 public class TareaService {
@@ -70,7 +71,9 @@ public class TareaService {
         tarea.setIdUsuario(idUsuario);
 
         tareaRepository.save(tarea);
-		
+
+        NotificadorTarea notificacion = new NotificadorTarea();
+        notificacion.notificacionTareaAsignada(tarea.getCodigoTarea(), tarea.getTitulo(), idUsuario);
 	}
 
 	public List<Tarea> obtenerTareasPorUsuario(String idUsuario) {
