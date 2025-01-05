@@ -308,7 +308,7 @@ El microservicio está preparado para ejecutarse en un contenedor Docker.
     - Run As - Build.. 
     en el campo Goals poner: clean package -DskipTests y clic en Run
 
-4. Validar que se creo dentro del directorio target el archivo *gestor_usuarios.jar*
+4. Validar que se creo dentro del directorio target el archivo *gestor_tareas.jar*
 
 5. Crear el contenedor de la base postgreSQL "SI AUN NO ESTA CREADO", en la terminal escribimos el comando:
 
